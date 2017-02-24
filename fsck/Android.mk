@@ -1,24 +1,24 @@
 LOCAL_PATH := $(call my-dir)
 
+common_src_files := \
+	main.c
+
+common_c_includes := \
+	$(LOCAL_PATH) \
+	${LOCAL_PATH}/../libexfat \
+	${LOCAL_PATH}/../../libfuse/include
+
+common_cflags := \
+	-D_FILE_OFFSET_BITS=64
+
+common_shared_libraries := \
+	libexfat
+
 include $(CLEAR_VARS)
 LOCAL_MODULE := fsck.exfat
 LOCAL_MODULE_TAGS := optional
-LOCAL_CFLAGS = -D_FILE_OFFSET_BITS=64
-LOCAL_SRC_FILES =  main.c
-LOCAL_C_INCLUDES += $(LOCAL_PATH) \
-					external/exfat/libexfat \
-					external/fuse/include
-LOCAL_SHARED_LIBRARIES := libexfat
+LOCAL_SRC_FILES = $(common_src_files)
+LOCAL_C_INCLUDES += $(common_c_includes)
+LOCAL_SHARED_LIBRARIES := $(common_shared_libraries)
+LOCAL_CFLAGS = $(common_cflags)
 include $(BUILD_EXECUTABLE)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := libexfat_fsck_static
-LOCAL_MODULE_TAGS := optional
-LOCAL_CFLAGS = -D_FILE_OFFSET_BITS=64 -Dmain=fsck_exfat_main
-LOCAL_SRC_FILES =  main.c
-LOCAL_C_INCLUDES += $(LOCAL_PATH) \
-					external/exfat/libexfat \
-					external/fuse/include
-LOCAL_STATIC_LIBRARIES := libfuse_static libexfat_static
-include $(BUILD_STATIC_LIBRARY)
-
