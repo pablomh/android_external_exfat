@@ -19,10 +19,17 @@
 
 LOCAL_PATH:= $(call my-dir)
 
-exfat_common_cflags := -DHAVE_CONFIG_H -std=gnu99
+exfat_common_cflags := \
+    -D_FILE_OFFSET_BITS=64 \
+    -D_LARGEFILE_SOURCE
+    -DHAVE_CONFIG_H \
+    -std=gnu99
+
+exfat_common_shared_libraries := \
+    libexfat
 
 ########################################
-# static library: libexfat.a
+# shared library: libexfat.so
 
 libexfat_src_files := \
     libexfat/cluster.c \
@@ -42,7 +49,7 @@ libexfat_headers := \
 libexfat_shared_libraries := \
     liblog
 
-## TARGET ##
+## SHARED ##
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := libexfat
@@ -52,22 +59,11 @@ LOCAL_CFLAGS := $(exfat_common_cflags)
 LOCAL_C_INCLUDES := $(libexfat_headers)
 LOCAL_SHARED_LIBRARIES := $(libexfat_shared_libraries)
 
-include $(BUILD_STATIC_LIBRARY)
-
-## HOST ##
-include $(CLEAR_VARS)
-
-LOCAL_MODULE := libexfat
-LOCAL_MODULE_TAGS := optional
-LOCAL_SRC_FILES := $(libexfat_src_files)
-LOCAL_CFLAGS := $(exfat_common_cflags)
-LOCAL_C_INCLUDES := $(libexfat_headers)
-
-include $(BUILD_HOST_STATIC_LIBRARY)
+include $(BUILD_SHARED_LIBRARY)
 
 
 ########################################
-# executable: mkexfatfs
+# executable: mkfs.exfat
 
 mkexfatfs_src_files := \
     mkfs/cbm.c \
@@ -86,29 +82,17 @@ mkexfatfs_headers := \
 ## TARGET ##
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := mkexfatfs
+LOCAL_MODULE := mkfs.exfat
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := $(mkexfatfs_src_files)
 LOCAL_CFLAGS := $(exfat_common_cflags)
 LOCAL_C_INCLUDES := $(mkexfatfs_headers)
-LOCAL_STATIC_LIBRARIES := libexfat
+LOCAL_SHARED_LIBRARIES := $(exfat_common_shared_libraries)
 
 include $(BUILD_EXECUTABLE)
 
-## HOST ##
-include $(CLEAR_VARS)
-
-LOCAL_MODULE := mkexfatfs
-LOCAL_MODULE_TAGS := optional
-LOCAL_SRC_FILES := $(mkexfatfs_src_files)
-LOCAL_CFLAGS := $(exfat_common_cflags)
-LOCAL_C_INCLUDES := $(mkexfatfs_headers)
-LOCAL_STATIC_LIBRARIES := libexfat
-
-include $(BUILD_HOST_EXECUTABLE)
-
 ########################################
-# executable: exfatfsck
+# executable: fsck.exfat
 
 exfatfsck_src_files := fsck/main.c
 
@@ -119,89 +103,40 @@ exfatfsck_headers := \
 ## TARGET ##
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := exfatfsck
+LOCAL_MODULE := fsck.exfat
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := $(exfatfsck_src_files)
 LOCAL_CFLAGS := $(exfat_common_cflags)
 LOCAL_C_INCLUDES := $(exfatfsck_headers)
-LOCAL_STATIC_LIBRARIES := libexfat
+LOCAL_SHARED_LIBRARIES := $(exfat_common_shared_libraries)
 
 include $(BUILD_EXECUTABLE)
 
-## HOST ##
-include $(CLEAR_VARS)
-
-LOCAL_MODULE := exfatfsck
-LOCAL_MODULE_TAGS := optional
-LOCAL_SRC_FILES := $(exfatfsck_src_files)
-LOCAL_CFLAGS := $(exfat_common_cflags)
-LOCAL_C_INCLUDES := $(exfatfsck_headers)
-LOCAL_STATIC_LIBRARIES := libexfat
-
-include $(BUILD_HOST_EXECUTABLE)
-
 ########################################
-# executable: dumpexfat
+# executable: mount.exfat
 
-dumpexfat_src_files := dump/main.c
+exfatmount_src_files := fuse/main.c
 
-dumpexfat_headers := \
+exfatmount_headers := \
     $(libexfat_headers) \
-    $(LOCAL_PATH)/dump
+    external/libfuse/include
+
+exfatmount_common_cflags := \
+    $(exfat_common_cflags) \
+    -DFUSE_USE_VERSION=30
+
+exfatmount_common_shared_libraries := \
+    $(exfat_common_shared_libraries) \
+    libfuse
 
 ## TARGET ##
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := dumpexfat
+LOCAL_MODULE := mount.exfat
 LOCAL_MODULE_TAGS := optional
-LOCAL_SRC_FILES := $(dumpexfat_src_files)
-LOCAL_CFLAGS := $(exfat_common_cflags)
-LOCAL_C_INCLUDES := $(dumpexfat_headers)
-LOCAL_STATIC_LIBRARIES := libexfat
+LOCAL_SRC_FILES := $(exfatmount_src_files)
+LOCAL_CFLAGS := $(exfatmount_common_cflags)
+LOCAL_C_INCLUDES := $(exfatmount_headers)
+LOCAL_SHARED_LIBRARIES := $(exfatmount_common_shared_libraries)
 
 include $(BUILD_EXECUTABLE)
-
-## HOST ##
-include $(CLEAR_VARS)
-
-LOCAL_MODULE := dumpexfat
-LOCAL_MODULE_TAGS := optional
-LOCAL_SRC_FILES := $(dumpexfat_src_files)
-LOCAL_CFLAGS := $(exfat_common_cflags)
-LOCAL_C_INCLUDES := $(dumpexfat_headers)
-LOCAL_STATIC_LIBRARIES := libexfat
-
-include $(BUILD_HOST_EXECUTABLE)
-
-########################################
-# executable: exfatlabel
-
-exfatlabel_src_files := label/main.c
-
-exfatlabel_headers := \
-    $(libexfat_headers) \
-    $(LOCAL_PATH)/label
-
-## TARGET ##
-include $(CLEAR_VARS)
-
-LOCAL_MODULE := exfatlabel
-LOCAL_MODULE_TAGS := optional
-LOCAL_SRC_FILES := $(exfatlabel_src_files)
-LOCAL_CFLAGS := $(exfat_common_cflags)
-LOCAL_C_INCLUDES := $(exfatlabel_headers)
-LOCAL_STATIC_LIBRARIES := libexfat
-
-include $(BUILD_EXECUTABLE)
-
-## HOST ##
-include $(CLEAR_VARS)
-
-LOCAL_MODULE := exfatlabel
-LOCAL_MODULE_TAGS := optional
-LOCAL_SRC_FILES := $(exfatlabel_src_files)
-LOCAL_CFLAGS := $(exfat_common_cflags)
-LOCAL_C_INCLUDES := $(exfatlabel_headers)
-LOCAL_STATIC_LIBRARIES := libexfat
-
-include $(BUILD_HOST_EXECUTABLE)
