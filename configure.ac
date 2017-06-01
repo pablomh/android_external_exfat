@@ -31,7 +31,10 @@ AC_PROG_CC_C99
 AC_PROG_RANLIB
 AM_PROG_AR
 AC_SYS_LARGEFILE
-PKG_CHECK_MODULES([FUSE], [fuse])
+PKG_CHECK_MODULES([libfuse3], [fuse3],
+	[AC_DEFINE([FUSE_USE_VERSION], [30])],
+	[PKG_CHECK_MODULES([libfuse2], [fuse >= 2.6],
+		[AC_DEFINE([FUSE_USE_VERSION], [26], [Required FUSE API version])])])
 AC_CONFIG_HEADERS([libexfat/config.h])
 AC_CONFIG_FILES([
 	libexfat/Makefile
