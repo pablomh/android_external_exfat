@@ -22,6 +22,8 @@ cc_defaults {
     name: "exfat_defaults",
 
     cflags: [
+	"-D_FILE_OFFSET_BITS=64",
+	"-D_LARGEFILE_SOURCE",
         "-DHAVE_CONFIG_H",
         "-std=gnu99",
         "-Wno-error",
@@ -47,7 +49,7 @@ cc_library_static {
 
 
 cc_binary {
-    name: "mkexfatfs",
+    name: "mkfs.exfat",
 
     srcs: ["mkfs/*.c"],
     defaults: ["exfat_defaults"],
@@ -56,7 +58,7 @@ cc_binary {
 }
 
 cc_binary {
-    name: "exfatfsck",
+    name: "fsck.exfat",
 
     srcs: ["fsck/main.c"],
     defaults: ["exfat_defaults"],
@@ -65,19 +67,11 @@ cc_binary {
 }
 
 cc_binary {
-    name: "dumpexfat",
+    name: "mount.exfat",
 
-    srcs: ["dump/main.c"],
+    srcs: ["fuse/main.c"],
     defaults: ["exfat_defaults"],
-    local_include_dirs: ["dump"],
+    local_include_dirs: ["fuse"],
     static_libs: ["libexfat"],
-}
-
-cc_binary {
-    name: "exfatlabel",
-
-    srcs: ["label/main.c"],
-    defaults: ["exfat_defaults"],
-    local_include_dirs: ["label"],
-    static_libs: ["libexfat"],
+    shared_libs: ["libfuse"],
 }
